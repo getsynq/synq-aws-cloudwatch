@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	ingestcloudwatchv1grpc "buf.build/gen/go/getsynq/api/grpc/go/synq/ingest/cloudwatch/v1/cloudwatchv1grpc"
@@ -84,10 +85,11 @@ func handler(ctx context.Context, logsEvent events.CloudwatchLogsEvent) error {
 	}
 
 	for _, logEvent := range data.LogEvents {
+		cleanedMessage := strings.ToValidUTF8(logEvent.Message, "")
 		event := &ingestcloudwatchv1.CloudwatchLogsLogEvent{
 			Id:        logEvent.ID,
 			Timestamp: timestamppb.New(time.UnixMilli(logEvent.Timestamp)),
-			Message:   logEvent.Message,
+			Message:   cleanedMessage,
 		}
 		req.LogEvents = append(req.LogEvents, event)
 	}
